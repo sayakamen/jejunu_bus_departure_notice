@@ -3,6 +3,13 @@
 
 from flask import Flask, render_template, jsonify
 from datetime import datetime
+import pytz
+
+@app.route('/') #서버의 시간과 한국 시간이 달라 올바르지 않은 버스가 표시되기에 서울시간으로 변경
+def index():
+    seoul_tz = pytz.timezone('Asia/Seoul')
+    current_time = datetime.now(seoul_tz).strftime("%Y-%m-%d %H:%M:%S")
+    return f"현재 서울 시간: {current_time}"
 
 app = Flask(__name__)
 
