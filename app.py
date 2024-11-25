@@ -1,6 +1,11 @@
-from datetime import datetime
 # 버스 시간표 데이터
 #시간표 크롤링 어려우니 http://bus.jeju.go.kr/search/line?searchText={버스번호} 에서 손으로 추출해와야함
+
+from flask import Flask, render_template, jsonify
+from datetime import datetime
+
+app = Flask(__name__)
+
 시간표 = {
 # 제주시 서부
     "270":
@@ -114,14 +119,30 @@ def find_bus_in_30min():
 
 출발버스찾기 = find_bus_in_30min()
 
-# 최종 출력
-print("현재 시간:", datetime.now().strftime("%H:%M"))
-print("제주대학교 정문 \n곧 출발하는 버스:")
-if 출발버스찾기:
-    for bus, time in 출발버스찾기:
-        print(f"{bus}번 버스 - {time}")
-else:
-    print("30분 이내 출발하는 버스가 없습니다.")
+# 웹 루트 경로
+@app.route("/")
+def index():
+    출발버스찾기 = find_bus_in_30min()
+    현재시간 = datetime.now().strftime("%H:%M")
+    return render_template("index.html", buses=출발버스찾기, time=현재시간)
+
+# JSON API
+@app.route("/api/buses")
+def buses_api():
+    출발버스찾기 = find_bus_in_30min()
+    return jsonify(출발버스찾기)
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
+# # 최종 출력
+# print("현재 시간:", datetime.now().strftime("%H:%M"))
+# print("제주대학교 정문 \n곧 출발하는 버스:")
+# if 출발버스찾기:
+#     for bus, time in 출발버스찾기:
+#         print(f"{bus}번 버스 - {time}")
+# else:
+#     print("30분 이내 출발하는 버스가 없습니다.")
 
 
 # 보완할_점 = [시간표 자동 크롤러 추가, 제주시 동부노선 추가, 서쪽 동쪽 정류장 별 알림 추가, 평일/휴일 시간표 맞춰서 안내]
