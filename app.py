@@ -5,12 +5,7 @@ from flask import Flask, render_template, jsonify
 from datetime import datetime
 import pytz
 
-@app.route('/') #서버의 시간과 한국 시간이 달라 올바르지 않은 버스가 표시되기에 서울시간으로 변경
-def index():
-    seoul_tz = pytz.timezone('Asia/Seoul')
-    current_time = datetime.now(seoul_tz).strftime("%Y-%m-%d %H:%M:%S")
-    return f"현재 서울 시간: {current_time}"
-
+# Flask 애플리케이션 인스턴스 생성
 app = Flask(__name__)
 
 시간표 = {
@@ -98,6 +93,14 @@ app = Flask(__name__)
     "3003": ["22:24", "23:15"]
 }
 
+@app.route('/') #서버의 시간대와 한국 시간대가 상이하기에 서울 시간대로 변경
+def index():
+    seoul_tz = pytz.timezone('Asia/Seoul')
+    현재시간 = datetime.now(seoul_tz).strftime("%H:%M")
+    출발버스찾기 = find_bus_in_30min()
+    return render_template("index.html", current_time=현재시간, buses=출발버스찾기)
+
+
 # 현재 시간을 가져오는 함수
 def get_current_time():
     now = datetime.now()
@@ -126,12 +129,6 @@ def find_bus_in_30min():
 
 출발버스찾기 = find_bus_in_30min()
 
-# 웹 루트 경로
-@app.route("/")
-def index():
-    출발버스찾기 = find_bus_in_30min()
-    현재시간 = datetime.now().strftime("%H:%M")
-    return render_template("index.html", buses=출발버스찾기, time=현재시간)
 
 # JSON API
 @app.route("/api/buses")
