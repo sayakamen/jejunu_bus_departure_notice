@@ -103,8 +103,9 @@ def index():
 
 # 현재 시간을 가져오는 함수
 def get_current_time():
-    now = datetime.now()
-    return now.hour * 60 + now.minute  # 현재 시간을 총 분 단위로 변환
+ seoul_tz = pytz.timezone('Asia/Seoul')
+ now = datetime.now(seoul_tz)
+ return now.hour * 60 + now.minute  # 현재 시간을 총 분 단위로 변환
 
 # 30분 이내 출발하는 버스를 찾는 함수
 def find_bus_in_30min():
