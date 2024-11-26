@@ -103,28 +103,28 @@ def index():
 
 # 현재 시간을 가져오는 함수
 def get_current_time():
- seoul_tz = pytz.timezone('Asia/Seoul')
- now = datetime.now(seoul_tz)
- return now.hour * 60 + now.minute  # 현재 시간을 총 분 단위로 변환
+    seoul_tz = pytz.timezone('Asia/Seoul')
+    now = datetime.now(seoul_tz)
+    return now.hour * 60 + now.minute  # 현재 시간을 총 분 단위로 변환
 
 # 30분 이내 출발하는 버스를 찾는 함수
 def find_bus_in_30min():
+    seoul_tz = pytz.timezone('Asia/Seoul')
     current_min = get_current_time()  # 현재 시간 (분 단위)
     end_min = current_min + 30  # 30분 후 시간 (분 단위)
-
     result = []
 
     # 각 버스 시간표를 확인
     for bus, times in 시간표.items():
         for time in times:
-            hour, minute = map(int, time.split(":")) # "08:00" → ["08", "00"] 꼴로 변경한 뒤 정수꼴로 변경
-            total_min = hour * 60 + minute  # 버스 시간을 분 단위로 변환 ex)8:00 → 480
+            hour, minute = map(int, time.split(":"))  # "08:00" → ["08", "00"] 형태로 변경
+            total_min = hour * 60 + minute  # 버스 시간을 분 단위로 변환 (예: 08:00 → 480)
 
-            # 30분 이내에 출발하는 버스만 남겨요
-            if current_min <= total_min <=  end_min:
-                result.append((bus, time)) #bus는 노선 번호 time은 다이어 상 출발시간
+            # 현재 시간대 기준으로 30분 이내에 출발하는 버스만 추가
+            if current_min <= total_min <= end_min:
+                result.append((bus, time))
 
-    # 남긴 결과를(버스시간) 먼저 출발하는 순서대로 정렬
+    # 남긴 결과를 먼저 출발하는 순서대로 정렬
     result.sort(key=lambda x: x[1])
     return result
 
