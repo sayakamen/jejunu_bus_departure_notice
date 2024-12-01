@@ -1,6 +1,13 @@
-from datetime import datetime
 # 버스 시간표 데이터
 #시간표 크롤링 어려우니 http://bus.jeju.go.kr/search/line?searchText={버스번호} 에서 손으로 추출해와야함
+
+from flask import Flask, render_template, jsonify
+from datetime import datetime
+import pytz
+
+# Flask 애플리케이션 인스턴스 생성
+app = Flask(__name__)
+
 시간표 = {
 # 제주시 서부
     "270":
@@ -86,42 +93,61 @@ from datetime import datetime
     "3003": ["22:24", "23:15"]
 }
 
+@app.route('/') #서버의 시간대와 한국 시간대가 상이하기에 서울 시간대로 변경
+def index():
+    seoul_tz = pytz.timezone('Asia/Seoul')
+    현재시간 = datetime.now(seoul_tz).strftime("%H:%M")
+    출발버스찾기 = find_bus_in_30min()
+    return render_template("index.html", current_time=현재시간, buses=출발버스찾기)
+
+
 # 현재 시간을 가져오는 함수
 def get_current_time():
-    now = datetime.now()
+    seoul_tz = pytz.timezone('Asia/Seoul')
+    now = datetime.now(seoul_tz)
     return now.hour * 60 + now.minute  # 현재 시간을 총 분 단위로 변환
 
 # 30분 이내 출발하는 버스를 찾는 함수
 def find_bus_in_30min():
+    seoul_tz = pytz.timezone('Asia/Seoul')
     current_min = get_current_time()  # 현재 시간 (분 단위)
     end_min = current_min + 30  # 30분 후 시간 (분 단위)
-
     result = []
 
     # 각 버스 시간표를 확인
     for bus, times in 시간표.items():
         for time in times:
-            hour, minute = map(int, time.split(":")) # "08:00" → ["08", "00"] 꼴로 변경한 뒤 정수꼴로 변경
-            total_min = hour * 60 + minute  # 버스 시간을 분 단위로 변환 ex)8:00 → 480
+            hour, minute = map(int, time.split(":"))  # "08:00" → ["08", "00"] 형태로 변경
+            total_min = hour * 60 + minute  # 버스 시간을 분 단위로 변환 (예: 08:00 → 480)
 
-            # 30분 이내에 출발하는 버스만 남겨요
-            if current_min <= total_min <=  end_min:
-                result.append((bus, time)) #bus는 노선 번호 time은 다이어 상 출발시간
+            # 현재 시간대 기준으로 30분 이내에 출발하는 버스만 추가
+            if current_min <= total_min <= end_min:
+                result.append((bus, time))
 
-    # 남긴 결과를(버스시간) 먼저 출발하는 순서대로 정렬
+    # 남긴 결과를 먼저 출발하는 순서대로 정렬
     result.sort(key=lambda x: x[1])
     return result
 
 출발버스찾기 = find_bus_in_30min()
 
-# 최종 출력
-print("현재 시간:", datetime.now().strftime("%H:%M"))
-print("제주대학교 정문 \n곧 출발하는 버스:")
-if 출발버스찾기:
-    for bus, time in 출발버스찾기:
-        print(f"{bus}번 버스 - {time}")
-else:
-    print("30분 이내 출발하는 버스가 없습니다.")
+
+# JSON API
+@app.route("/api/buses")
+def buses_api():
+    출발버스찾기 = find_bus_in_30min()
+    return jsonify(출발버스찾기)
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
+# # 최종 출력
+# print("현재 시간:", datetime.now().strftime("%H:%M"))
+# print("제주대학교 정문 \n곧 출발하는 버스:")
+# if 출발버스찾기:
+#     for bus, time in 출발버스찾기:
+#         print(f"{bus}번 버스 - {time}")
+# else:
+#     print("30분 이내 출발하는 버스가 없습니다.")
 
 
 # 보완할_점 = [시간표 자동 크롤러 추가, 제주시 동부노선 추가, 서쪽 동쪽 정류장 별 알림 추가, 평일/휴일 시간표 맞춰서 안내]

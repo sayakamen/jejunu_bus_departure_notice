@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>제주대 버스 시간표</title>
+    <meta http-equiv="refresh" content="60">
+</head>
+<body>
+    <h1>제주대학교 정문</h1>
+    <p>현재 시간: {{ current_time }}</p>
+    <h2>곧 출발하는 버스</h2>
+    {% if buses %}
+        <ul>
+        {% for bus, time in buses %}
+            <li>{{ bus }}번 버스 - {{ time }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>30분 이내 출발하는 버스가 없습니다.</p>
+    {% endif %}
+</body>
+</html>
